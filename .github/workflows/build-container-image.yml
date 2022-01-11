@@ -27,4 +27,13 @@ jobs:
         run: |
           kubectl_version=${{ matrix.kubectl_version }}
           major_version=${kubectl_version%.*}
-          echo $major_version
+          assembly_version="${{ env.base_version }}.${GITHUB_RUN_NUMBER}"
+          echo "KUBECTL_VERSION=$kubectl_version" >> $GITHUB_ENV
+          echo "KUBECTL_MAJOR_VERSION=$major_version" >> $GITHUB_ENV
+          echo "ASSEMBLY_VERSION=$assembly_version" >> $GITHUB_ENV
+
+      - name: Build docker image
+        run: |
+          docker build -t ${{ env.image_repo_url }}:${KUBECTL_VERSION} \
+            --build-arg assembly_version=${ASSEMBLY_VERSION} \
+            --build-arg kubectl_version=${KUBECTL_VERSION} .
