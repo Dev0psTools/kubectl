@@ -40,8 +40,8 @@ jobs:
             --build-arg kubectl_version=${KUBECTL_VERSION} .
 
       - name: Login github container registry
-          id: docker_login
-          run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+        id: ghcr_io_login
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
       - name: "Publish images ${{ matrix.kubectl_version }}"
         run: |
