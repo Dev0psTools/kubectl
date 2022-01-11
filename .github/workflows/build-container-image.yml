@@ -33,8 +33,14 @@ jobs:
           echo "KUBECTL_MAJOR_VERSION=$major_version" >> $GITHUB_ENV
           echo "ASSEMBLY_VERSION=$assembly_version" >> $GITHUB_ENV
 
-      - name: Build docker image
+      - name: "Build image ${{ matrix.kubectl_version }}"
         run: |
           docker build -t ${{ env.image_repo_url }}:${KUBECTL_VERSION} \
             --build-arg assembly_version=${ASSEMBLY_VERSION} \
             --build-arg kubectl_version=${KUBECTL_VERSION} .
+
+      - name: "Publish images ${{ matrix.kubectl_version }}"
+        run: |
+          docker push ${{ env.image_repo_url }}:${KUBECTL_VERSION}
+          docker tag ${{ env.image_repo_url }}:${KUBECTL_VERSION} ${{ env.image_repo_url }}:${KUBECTL_MAJOR_VERSION}
+          docker push ${{ env.image_repo_url }}:${KUBECTL_MAJOR_VERSION}
