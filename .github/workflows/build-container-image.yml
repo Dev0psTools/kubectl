@@ -10,7 +10,8 @@ on:
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 env:
-  image_repo_url: ghcr.io/Dev0psTools/kubectl
+  base_version: 0.0
+  image_repo_url: ghcr.io/dev0pstools/kubectl
 
 jobs:
   build:
@@ -23,7 +24,27 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - run: echo build image ${{ matrix.kubectl_version }}
-      - run: date
-      - run: sleep 5 # Sleep so that we can see a difference in timestamp on the last run
-      - run: date
+      - name: Set assembly version
+        run: |
+          kubectl_version=${{ matrix.kubectl_version }}
+          major_version=${kubectl_version%.*}
+          assembly_version="${{ env.base_version }}.${GITHUB_RUN_NUMBER}"
+          echo "KUBECTL_VERSION=$kubectl_version" >> $GITHUB_ENV
+          echo "KUBECTL_MAJOR_VERSION=$major_version" >> $GITHUB_ENV
+          echo "ASSEMBLY_VERSION=$assembly_version" >> $GITHUB_ENV
+
+      - name: "Build image ${{ matrix.kubectl_version }}"
+        run: |
+          docker build -t ${{ env.image_repo_url }}:${KUBECTL_VERSION} \
+            --build-arg assembly_version=${ASSEMBLY_VERSION} \
+            --build-arg kubectl_version=${KUBECTL_VERSION} .
+
+      - name: Login github container registry
+        id: ghcr_io_login
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: "Publish images ${{ matrix.kubectl_version }}"
+        run: |
+          docker push ${{ env.image_repo_url }}:${KUBECTL_VERSION}
+          docker tag ${{ env.image_repo_url }}:${KUBECTL_VERSION} ${{ env.image_repo_url }}:${KUBECTL_MAJOR_VERSION}
+          docker push ${{ env.image_repo_url }}:${KUBECTL_MAJOR_VERSION}
