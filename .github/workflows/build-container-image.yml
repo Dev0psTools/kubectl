@@ -6,10 +6,11 @@ name: Build and publish images
 on:
   # Triggers the workflow on push or pull request events but only for the main branch
   push:
-    branches: [ main ]
+    branches: [ devops ]
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 env:
+  base_version: 0.0
   image_repo_url: ghcr.io/Dev0psTools/kubectl
 
 jobs:
@@ -22,8 +23,7 @@ jobs:
         kubectl_version: [ '1.20.14','1.21.8','1.22.5','1.23.1' ]
     steps:
       - uses: actions/checkout@v2
-
-      - run: echo build image ${{ matrix.kubectl_version }}
-      - run: date
-      - run: sleep 5 # Sleep so that we can see a difference in timestamp on the last run
-      - run: date
+      - name: Set assembly version
+        run: |
+          major_version=${${{ matrix.kubectl_version }}%.*}
+          echo $major_version
