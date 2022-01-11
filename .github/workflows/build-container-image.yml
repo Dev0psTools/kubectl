@@ -9,20 +9,21 @@ on:
     branches: [ main ]
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
+env:
+  image_repo_url: ghcr.io/Dev0psTools/kubectl
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   build:
     name: Build version
     runs-on: ubuntu-latest
+    strategy:
+      max-parallel: 4
+      matrix:
+        kubectl_version: [ '1.20.14','1.21.8','1.22.5','1.23.1' ]
     steps:
       - uses: actions/checkout@v2
 
-      - name: Run a one-line script
-        run: echo Hello, world!
-
-      # Runs a set of commands using the runners shell
-      - name: Run a multi-line script
-        run: |
-          echo Add other actions to build,
-          echo test, and deploy your project.
+      - run: echo build image ${{ matrix.kubectl_version }}
+      - run: date
+      - run: sleep 5 # Sleep so that we can see a difference in timestamp on the last run
+      - run: date
